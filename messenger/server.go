@@ -85,7 +85,7 @@ func (s *Server) startChatting(conn net.Conn) {
 	s.sendMessage(conn, message)
 }
 
-// SendMessage - Sends message for all users by mode and saves message
+// SendMessage - Sends message for all users by mode
 func (s *Server) sendMessage(conn net.Conn, message string) {
 	if message == "" {
 		fmt.Fprintf(conn, PatternSending, time.Now().Format(TimeDefault), s.Connections[conn])

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// GetFomattedMessage -
+// GetFomattedMessage - returns formattend message by mode
 func getFomattedMessage(serv *Server, conn net.Conn, message string, mode int) string {
 	name := serv.Connections[conn]
 	// Change Message
