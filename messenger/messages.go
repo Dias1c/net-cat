@@ -8,7 +8,9 @@ import (
 
 // GetFomattedMessage - returns formattend message by mode
 func getFomattedMessage(serv *Server, conn net.Conn, message string, mode int) string {
+	serv.mutex.Lock()
 	name := serv.Connections[conn]
+	serv.mutex.Unlock()
 	// Change Message
 	switch mode {
 	case ModeSendMessage:

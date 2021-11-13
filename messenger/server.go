@@ -22,15 +22,23 @@ func (s *Server) Constructor(port string, maxConn int) error {
 	}
 	// Set settings
 	s.Server = serv
-	s.Connections = make(map[net.Conn]string)
 	s.MaxConnections = maxConn
+	s.Connections = make(map[net.Conn]string, maxConn)
+	s.UsedNames = make(map[string]bool, maxConn)
 	return nil
+}
+
+// CanConnect - check connection for connect
+func (s *Server) CanConnect(conn net.Conn) bool {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return !(s.MaxConnections != 0 && len(s.Connections) >= s.MaxConnections)
 }
 
 // ConnectMessenger - Join conn to group after writing name and starting comminicate with him.
 // Closes connection on ERROR or finish Chatting
 func (s *Server) ConnectMessenger(conn net.Conn) {
-	if s.MaxConnections != 0 && len(s.Connections) >= s.MaxConnections {
+	if !s.CanConnect(conn) {
 		fmt.Fprint(conn, "The room is full, please try again later...")
 		conn.Close()
 		return
@@ -55,10 +63,12 @@ func (s *Server) ConnectMessenger(conn net.Conn) {
 // CloseServer - closing all connections and close connections
 func (s *Server) CloseServer() {
 	log.Println("Closing Server")
+	s.mutex.Lock()
 	for conn := range s.Connections {
 		fmt.Fprintf(conn, "\n%sServer Was Closed!%s", BgColorRed, ColorReset)
 		conn.Close()
 	}
+	s.mutex.Unlock()
 	s.Server.Close()
 	log.Println("Server Closed")
 }
@@ -94,12 +104,14 @@ func (s *Server) sendMessage(conn net.Conn, message string) {
 	// SendingMessage
 	time := time.Now().Format(TimeDefault)
 	sendMessage := fmt.Sprintf("%s!%s\n%s", ColorYellow, ColorReset, message)
+	s.mutex.Lock()
 	for con := range s.Connections {
 		if con != conn {
 			fmt.Fprint(con, sendMessage)
 		}
 		fmt.Fprintf(con, PatternSending, time, s.Connections[con])
 	}
+	s.mutex.Unlock()
 }
 
 // LoadMessages - Sends History of message for conn
@@ -125,9 +137,10 @@ func (s *Server) addConnection(conn net.Conn, name string) error {
 	defer s.mutex.Unlock()
 	if s.MaxConnections != 0 && len(s.Connections) >= s.MaxConnections {
 		return fmt.Errorf("The room is full [%v]", conn.RemoteAddr())
-	} else if _, isIn := s.Connections[conn]; isIn {
+	} else if s.UsedNames[name] {
 		return fmt.Errorf("Name '%s' is Exist [%v]", name, conn.RemoteAddr())
 	}
+	s.UsedNames[name] = true
 	s.Connections[conn] = name
 	log.Printf("Connected %v", conn.RemoteAddr())
 	return nil
@@ -136,6 +149,7 @@ func (s *Server) addConnection(conn net.Conn, name string) error {
 // RemoveConnection - Removing Connection from s.Connections (safe)
 func (s *Server) removeConnection(conn net.Conn) {
 	s.mutex.Lock()
+	delete(s.UsedNames, s.Connections[conn])
 	delete(s.Connections, conn)
 	log.Printf("Connect %v was left", conn.RemoteAddr())
 	s.mutex.Unlock()

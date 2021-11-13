@@ -1,6 +1,6 @@
 #!/bin/sh
 PORT=27960
-RUN="go run ."
+RUN="go run -race ."
 
 gnome-terminal --geometry=80x40+50+200 -e "bash -c 'hostname -I && $RUN $PORT';bash"
 sleep 1
