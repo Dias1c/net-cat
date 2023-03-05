@@ -7,12 +7,12 @@ NetCat, nc system command, is a command-line utility that reads and writes data 
 To see more information about NetCat inspect the manual `man nc`.
 ## Usage
 ```
-$ go run . $port
+$ go run ./cmd/main.go $port
 ```
 ### Example
 - `1st` Terminal
 ```bash
-$ go run .
+$ go run ./cmd/main.go
 Listening on the port :8080
 2021/10/27 19:14:10 Connected 127.0.0.1:39744
 2021/10/27 19:14:32 Connected 127.0.0.1:39750

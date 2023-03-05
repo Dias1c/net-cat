@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"netcat/messenger"
+	"github.com/Dias1c/net-cat/internal/messenger"
 )
 
 // Default settings
