@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// Server -
+// Server - TCP server struct.
 type Server struct {
 	Server         net.Listener        // Server connection
 	Connections    map[net.Conn]string // map[connection]Name
